@@ -1,0 +1,14 @@
+{
+  "name": "randomross",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node app.js",
+    "debug": "node --inspect app.js"
+  },
+  "dependencies": {
+    "express": "~4.16.0",
+    "morgan": "~1.9.0",
+    "request": "^2.88.0"
+  }
+}

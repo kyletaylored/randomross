@@ -1,31 +1,36 @@
-const port = process.env.PORT || 3000;
-const express = require("express");
-const request = require("request");
+import express from 'express';
+import axios from 'axios';
 
-var app = express();
+const app = express();
 
-app.listen(port, err => {
-  if (err) throw err;
-  console.log(`> Ready On Server http://localhost:${port}`);
-});
+// Route handler for serving a random Bob Ross painting
+app.get('/', async (req, res) => {
+  const url = 'https://api.github.com/repos/jwilber/Bob_Ross_Paintings/contents/data/paintings';
 
-app.use('/', function(req, res) {
-  // var url = apiServerHost + req.url;
-  var options = {
-    url: 'https://api.github.com/repos/jwilber/Bob_Ross_Paintings/contents/data/paintings',
-    headers: {
-      'User-Agent': 'request'
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'axios',
+      },
+    });
+
+    const data = response.data;
+    if (data && data.length > 0) {
+      const item = data[Math.floor(Math.random() * data.length)];
+      res.setHeader('Content-Type', 'image/jpeg');
+      const imageResponse = await axios({
+        url: item.download_url,
+        method: 'GET',
+        responseType: 'stream',
+      });
+      imageResponse.data.pipe(res);
+    } else {
+      res.status(404).send('No paintings found');
     }
-  };
-
-  function callback(error, response, body) {
-    if (!error && response.statusCode == 200) {
-      var data = JSON.parse(body);
-      let item = data[Math.floor(Math.random()*data.length)];
-      res.setHeader("Content-Type", "image");
-      req.pipe(request(item.download_url)).pipe(res);
-    }
+  } catch (error) {
+    console.error('Error fetching data from GitHub API:', error);
+    res.status(500).send('Error fetching paintings');
   }
-
-  request(options, callback);
 });
+
+export default app;  // No explicit port listening
